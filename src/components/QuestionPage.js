@@ -165,6 +165,7 @@ function AnswerComponent(props) {
             ? 'Wrong! Try again.'
             : 'Check My Answer'}
         </button>
+        <div className='footerSpace'></div>
       </div>
     </div>
   );
@@ -201,7 +202,7 @@ function QuestionPage() {
 
     return (
         <div className="container">
-            <h1 className="text-center">Question Page</h1>
+            <h1 className="text-center">{docData?.title}</h1>
             <div className="row">
                 {/* pass docData to QuestionComponent */}
                 <QuestionComponent questionData={docData?.question} />
