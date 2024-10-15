@@ -1,8 +1,43 @@
+import React from 'react';
+import { auth } from '../services/firebase';  // Firebase auth
+import { useNavigate } from 'react-router-dom';  // useNavigate for redirection
+
+useEffect(() => {
+    db.collection('questions').get().then(snapshot => {
+      const questions = snapshot.docs.map(doc => doc.data());
+      setQuestions(questions);
+    });
+  }, []);
+  
+
+const SignOutButton = () => {
+  const navigate = useNavigate();  // initialise navigate
+
+  const handleSignOut = () => {
+    auth.signOut()
+      .then(() => {
+        console.log('User signed out');
+        navigate('/');  // redirect to  LoginPage after sign out
+      })
+      .catch((error) => {
+        console.error('Error signing out:', error.message);
+      });
+  };
+
+  return (
+    <button onClick={handleSignOut} className="btn btn-danger">
+      Sign Out
+    </button>
+  );
+};
+
 
 function QuestionComponent() {
 
     return (
+    
         <div className="col-sm">
+            <SignOutButton /> 
             <h3 className="text-center">Question</h3>
             <div className="p-2 mb-5 bg-light">
                 <div className="text-center">
