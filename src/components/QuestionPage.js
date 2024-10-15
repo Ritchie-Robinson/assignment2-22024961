@@ -88,39 +88,87 @@ function HintComponent() {
 }
 
 function AnswerComponent(props) {
-    const { answerData } = props;
+    const { answerData, correctAnswer } = props;  // get answerData and correctAnswer
+
+    // state to keep track of selected answer and button's state
+    const [selectedAnswer, setSelectedAnswer] = useState(null); // for tracking selected answer
+    const [answerStatus, setAnswerStatus] = useState(null);  // track if answer is correct or wrong
     
       // check answerData is array before mapping
       if (answerData == null) {
         return <p>Error: Answers data is null or undefined!</p>;
       }
-    
+  // handle selecting an answer
+  const handleAnswerSelect = (answer) => {
+    setSelectedAnswer(answer);  // set  selected answer in state
+    setAnswerStatus(null);  // reset status when a new answer is selected
+  };
 
-      return (
-        <div className="col-12">
-          <h3 className="text-center">Answers</h3>
-          <div className="p-3 mb-2 bg-light">
-            <div className="row">
-              {answerData.map((answer, index) => (
-                <div className="col-md-6 d-grid gap-2" key={index}>
+  // Handle checking the selected answer
+  const checkAnswer = () => {
+    if (selectedAnswer === correctAnswer) {
+      setAnswerStatus('correct');
+    } else {
+      setAnswerStatus('wrong');
+    }
+  };
 
-                  <button type="button" className="btn btn-secondary mb-2 p-4">
-                    {answer}
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-  
-              <div className="text-center mt-3">
-              <button type="button" className="btn btn-primary p-3">
-                Check My Answer
+  return (
+    <div className="col-12">
+      <h3 className="text-center">Answers</h3>
+      <div className="p-3 mb-2 bg-light">
+        <div className="row">
+          {/* possible answer buttons */}
+          {answerData.map((answer, index) => (
+            <div className="col-md-6 d-grid gap-2" key={index}>
+              <button
+                type="button"
+                className={`btn mb-2 p-4 ${
+                  // Apply grey for the selected answer
+                  selectedAnswer === answer
+                    ? 'btn-secondary'  // grey button for selected answer
+                    : 'btn-outline-secondary'  // default state for non-selected answers
+                } ${
+                  // apply correct or wrong color only to selected button
+                  selectedAnswer === answer && answerStatus === 'correct'
+                    ? 'btn-success'  //green button if selected answer is correct
+                    : selectedAnswer === answer && answerStatus === 'wrong'
+                    ? 'btn-danger'   // red if wrong
+                    : ''
+                }`}
+                onClick={() => handleAnswerSelect(answer)}  // set selected answer
+              >
+                {answer}
               </button>
             </div>
-          </div>
-      );
-    }
-    
+          ))}
+        </div>
+      </div>
+
+      {/* check My Answer button */}
+      <div className="text-center mt-3">
+        <button
+          type="button"
+          className={`btn p-3 ${
+            answerStatus === 'correct'
+              ? 'btn-success'  // Ggeen button if correct
+              : answerStatus === 'wrong'
+              ? 'btn-danger'   // red if wrong
+              : 'btn-primary'  // blue when no answer selected
+          }`}
+          onClick={checkAnswer}  // check selected answer
+          disabled={selectedAnswer === null}  // disable if no answer is selected
+        >
+          {answerStatus === 'correct'
+            ? 'Correct! Well done!'
+            : answerStatus === 'wrong'
+            ? 'Wrong! Try again.'
+            : 'Check My Answer'}
+        </button>
+      </div>
+    </div>
+  );
+}
 
 // main question component
 function QuestionPage() {
@@ -144,9 +192,9 @@ function QuestionPage() {
         };
 
         fetchData();
-    }, []);  // Empty dependency array means this effect runs only once when the component mounts
+    }, []);  // empty dependency array means effect runs only once when the component mounts
 
-    // If docData is null, show loading message
+    // if docData is null, show loading message
     if (!docData) {
         return <div className="container"><p>Loading...</p></div>;
     }
@@ -155,15 +203,18 @@ function QuestionPage() {
         <div className="container">
             <h1 className="text-center">Question Page</h1>
             <div className="row">
-                {/* Pass docData to the QuestionComponent */}
+                {/* pass docData to QuestionComponent */}
                 <QuestionComponent questionData={docData?.question} />
 
-                {/* Pass only hint-related data to HintComponent */}
+                {/* pass hint data to HintComponent */}
                 <HintComponent hintData={docData?.hint} />
             </div>
             <div className="row">
-                {/* Pass possible answers to AnswerComponent */}
-                <AnswerComponent answerData={docData?.possible_answers} />
+                {/* pass possible answers and correct answer to AnswerComponent */}
+                <AnswerComponent 
+                    answerData={docData?.possible_answers}  
+                    correctAnswer={docData?.correct_answer} 
+                    />
 
             </div>
         </div>
