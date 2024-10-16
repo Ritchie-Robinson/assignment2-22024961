@@ -88,19 +88,46 @@ function HintComponent() {
 }
 
 function AnswerComponent(props) {
-    const { answerData, correctAnswer } = props;  // get answerData and correctAnswer
+  const { answerData, correctAnswer, answerCount } = props;  // get answerData, correctAnswer, and answerCount
 
-    // state to keep track of selected answer and button's state
-    const [selectedAnswer, setSelectedAnswer] = useState(null); // for tracking selected answer
-    const [answerStatus, setAnswerStatus] = useState(null);  // track if answer is correct or wrong
-    
-      // check answerData is array before mapping
-      if (answerData == null) {
-        return <p>Error: Answers data is null or undefined!</p>;
-      }
+  // log props to debug 
+  console.log("Answer Data:", answerData);
+  console.log("Answer Count:", answerCount);
+  console.log("Correct Answer:", correctAnswer);
+
+  // state to keep track of selected answer and button's state
+  const [selectedAnswer, setSelectedAnswer] = useState(null);  // for tracking selected answer
+  const [answerStatus, setAnswerStatus] = useState(null);  // track if answer is correct or wrong
+
+  // check if answerData is an array before mapping
+  if (!answerData || !Array.isArray(answerCount)) {
+    console.error("Answer data or answer counts are not properly passed.", { answerData, answerCount });
+    return <p>Error: Answers data or counts are not valid!</p>;
+  }
+
+  // Calculate percentages based on answer counts
+  const percentageCalculation = (answerCounts) => {
+    if (!Array.isArray(answerCounts)) {
+      console.error("answerCounts is not an array:", answerCounts);  // Log what answerCounts actually is
+      return [];
+    }
+
+    const totalCount = answerCounts.reduce((total, count) => total + count, 0);  // Sum up all counts
+
+    // If totalCount is zero, return an array of 0% for each option to avoid division by zero
+    if (totalCount === 0) {
+      return answerCounts.map(() => 0);
+    }
+
+    // Calculate percentages
+    return answerCounts.map((count) => ((count / totalCount) * 100).toFixed(1));  // Convert to percentage with 1 decimal place
+  };
+
+  const percentages = percentageCalculation(answerCount);  // Calculate percentages for the buttons
+
   // handle selecting an answer
   const handleAnswerSelect = (answer) => {
-    setSelectedAnswer(answer);  // set  selected answer in state
+    setSelectedAnswer(answer);  // set the selected answer in state
     setAnswerStatus(null);  // reset status when a new answer is selected
   };
 
@@ -118,7 +145,7 @@ function AnswerComponent(props) {
       <h3 className="text-center">Answers</h3>
       <div className="p-3 mb-2 bg-light">
         <div className="row">
-          {/* possible answer buttons */}
+          {/* Possible answer buttons */}
           {answerData.map((answer, index) => (
             <div className="col-md-6 d-grid gap-2" key={index}>
               <button
@@ -138,23 +165,23 @@ function AnswerComponent(props) {
                 }`}
                 onClick={() => handleAnswerSelect(answer)}  // set selected answer
               >
-                {answer}
+                {answer} {percentages[index] ? `(${percentages[index]}%)` : null}  {/* Display percentage */}
               </button>
             </div>
           ))}
         </div>
       </div>
 
-      {/* check My Answer button */}
+      {/* Check My Answer button */}
       <div className="text-center mt-3">
         <button
           type="button"
           className={`btn p-3 ${
             answerStatus === 'correct'
-              ? 'btn-success'  // Ggeen button if correct
+              ? 'btn-success'  // green button if correct
               : answerStatus === 'wrong'
               ? 'btn-danger'   // red if wrong
-              : 'btn-primary'  // blue when no answer selected
+              : 'btn-primary'  // blue when no answer is selected
           }`}
           onClick={checkAnswer}  // check selected answer
           disabled={selectedAnswer === null}  // disable if no answer is selected
@@ -165,7 +192,7 @@ function AnswerComponent(props) {
             ? 'Wrong! Try again.'
             : 'Check My Answer'}
         </button>
-        <div className='footerSpace'></div>
+        <div className="footerSpace"></div>
       </div>
     </div>
   );
@@ -214,7 +241,8 @@ function QuestionPage() {
                 {/* pass possible answers and correct answer to AnswerComponent */}
                 <AnswerComponent 
                     answerData={docData?.possible_answers}  
-                    correctAnswer={docData?.correct_answer} 
+                    correctAnswer={docData?.correct_answer}
+                    answerCount={docData?.answer_count}  
                     />
 
             </div>
